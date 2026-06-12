@@ -1,0 +1,3 @@
+# Este proyecto NO necesita dependencias externas: usa solo la librería
+# estándar de Python. El archivo existe para que las plataformas de hosting
+# (Render, Railway, etc.) detecten que es una app de Python.

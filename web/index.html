@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Predictor Mundial 2026</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="ball">⚽</span>
+      <div>
+        <h1>Predictor Mundial 2026</h1>
+        <p class="sub">Poisson · Dixon-Coles · ELO · Monte Carlo</p>
+      </div>
+    </div>
+    <nav class="tabs">
+      <button class="tab active" data-tab="sim">Favoritos</button>
+      <button class="tab" data-tab="recommend">Recomendadas 🔥</button>
+      <button class="tab" data-tab="groups">Grupos</button>
+      <button class="tab" data-tab="predictor">Predictor</button>
+      <button class="tab" data-tab="value">Valor 💰</button>
+      <button class="tab" data-tab="schedule">Calendario</button>
+      <button class="tab" data-tab="teams">Equipos</button>
+      <button class="tab" data-tab="stadiums">Estadios</button>
+      <button class="tab" data-tab="about">Modelo</button>
+    </nav>
+    <div class="live-bar" id="live-bar">
+      <span class="live-dot"></span>
+      <span id="live-text">Conectando con datos en vivo…</span>
+      <button id="live-refresh-btn" class="live-refresh" title="Actualizar ahora">⟳</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- SIMULACIÓN / FAVORITOS -->
+    <section id="sim" class="panel active">
+      <div class="section-head">
+        <h2>Probabilidades del torneo</h2>
+        <div class="controls">
+          <label>Simulaciones
+            <select id="sim-n">
+              <option value="2000">2.000</option>
+              <option value="10000" selected>10.000</option>
+              <option value="50000">50.000</option>
+            </select>
+          </label>
+          <button id="run-sim" class="btn">Ejecutar Monte Carlo</button>
+        </div>
+      </div>
+      <p class="hint" id="sim-hint">Sorteamos el torneo completo miles de veces para estimar cuánto avanza cada selección.</p>
+      <div class="table-wrap">
+        <table id="sim-table">
+          <thead>
+            <tr><th>#</th><th>Selección</th><th>ELO</th><th>Octavos</th><th>4tos</th><th>Semis</th><th>Final</th><th>Campeón</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- GRUPOS -->
+    <section id="groups" class="panel">
+      <div class="section-head"><h2>Fase de grupos</h2></div>
+      <p class="hint">Cada tarjeta muestra el grupo, los equipos y las predicciones de sus partidos. Clic en un partido para ver todas las estadísticas.</p>
+      <div id="groups-grid" class="groups-grid"></div>
+    </section>
+
+    <!-- PREDICTOR -->
+    <section id="predictor" class="panel">
+      <div class="section-head"><h2>Predictor de partido</h2></div>
+      <div class="match-picker">
+        <select id="home-select"></select>
+        <span class="vs">vs</span>
+        <select id="away-select"></select>
+        <select id="stage-select">
+          <option value="group">Fase de grupos</option>
+          <option value="r32">Eliminación directa</option>
+        </select>
+        <button id="predict-btn" class="btn">Predecir</button>
+      </div>
+      <div id="match-result"></div>
+    </section>
+
+    <!-- RECOMENDADAS (escáner de valor de todo el torneo) -->
+    <section id="recommend" class="panel">
+      <div class="section-head"><h2>Apuestas recomendadas del torneo</h2>
+        <button id="rescan-btn" class="btn">Reescanear</button>
+      </div>
+      <p class="hint">Escaneo automático de <b>todos</b> los partidos próximos comparando el modelo contra las cuotas reales del mercado (sin su margen). Solo se recomiendan las de <b>edge plausible (2–12%)</b>. Las discrepancias enormes casi nunca son valor real: significan que el mercado sabe algo que el modelo no (lesiones, forma), así que se muestran aparte como <b>no fiables</b>.</p>
+      <div id="recommend-content"><div class="loading"><span class="spinner"></span>Escaneando el torneo…</div></div>
+    </section>
+
+    <!-- VALOR (apuestas mal valoradas) -->
+    <section id="value" class="panel">
+      <div class="section-head"><h2>Análisis de valor · apuestas mal valoradas</h2></div>
+      <p class="hint">El modelo te dice su probabilidad real. Ingresa la cuota de tu casa de apuestas y se calcula el <b>valor esperado (EV)</b>: si tu modelo le da más probabilidad de la que implica la cuota, es una <b>apuesta de valor</b> (EV+). El <b>criterio de Kelly</b> sugiere qué fracción de la banca apostar. Es la forma matemáticamente correcta de buscar ganancia a largo plazo.</p>
+
+      <div class="value-controls">
+        <label>Banca inicial <input id="bankroll" type="number" value="50000" min="1"></label>
+        <label>Objetivo <input id="target" type="number" value="4000000" min="1"></label>
+        <label>Kelly
+          <select id="kelly-mult">
+            <option value="0.25" selected>1/4 (conservador)</option>
+            <option value="0.5">1/2 (medio)</option>
+            <option value="1">Completo (agresivo)</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="match-picker">
+        <select id="v-home"></select>
+        <span class="vs">vs</span>
+        <select id="v-away"></select>
+        <select id="v-stage">
+          <option value="group">Fase de grupos</option>
+          <option value="r32">Eliminación directa</option>
+        </select>
+        <button id="v-load" class="btn">Cargar mercados</button>
+      </div>
+
+      <div id="value-table-wrap"></div>
+
+      <div id="portfolio" class="portfolio hidden">
+        <div class="section-head"><h3>🧾 Mi cartera de apuestas de valor</h3>
+          <button id="sim-bankroll" class="btn">Simular banca (Monte Carlo)</button>
+        </div>
+        <div id="portfolio-list"></div>
+        <div id="portfolio-result"></div>
+      </div>
+    </section>
+
+    <!-- CALENDARIO -->
+    <section id="schedule" class="panel">
+      <div class="section-head"><h2>Calendario</h2></div>
+      <div id="schedule-list"></div>
+    </section>
+
+    <!-- EQUIPOS -->
+    <section id="teams" class="panel">
+      <div class="section-head"><h2>Selecciones (por ELO)</h2></div>
+      <div class="table-wrap">
+        <table id="teams-table">
+          <thead><tr><th>#</th><th>Selección</th><th>Grupo</th><th>ELO</th><th>Rank FIFA</th><th>Confederación</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ESTADIOS -->
+    <section id="stadiums" class="panel">
+      <div class="section-head"><h2>Estadios sede</h2></div>
+      <div id="stadiums-grid" class="stadiums-grid"></div>
+    </section>
+
+    <!-- MODELO -->
+    <section id="about" class="panel">
+      <div class="section-head"><h2>Cómo funciona el modelo</h2></div>
+      <div class="about-grid">
+        <div class="about-card"><h3>1 · ELO Rating</h3><p>Cada selección tiene un rating de fuerza relativa. Calibra la supremacía esperada entre dos equipos: <code>P = 1 / (1 + 10^(-Δ/400))</code>.</p></div>
+        <div class="about-card"><h3>2 · Goles esperados (λ)</h3><p>El ELO + el promedio goleador mundialista producen las fuerzas de ataque y defensa de cada equipo, y de ahí los goles esperados (λ) de cada lado.</p></div>
+        <div class="about-card"><h3>3 · Poisson + Dixon-Coles</h3><p>Con los dos λ generamos la matriz de probabilidad de cada marcador. Dixon-Coles corrige los marcadores bajos (0-0, 1-0, 1-1) que Poisson puro subestima.</p></div>
+        <div class="about-card"><h3>4 · Mercados de apuestas</h3><p>De la matriz salen 1X2, doble oportunidad, Over/Under, ambos anotan, hándicap asiático, portería a cero, tarjetas, córners y goleadores.</p></div>
+        <div class="about-card"><h3>5 · Monte Carlo</h3><p>Sorteamos el torneo completo 10.000+ veces muestreando marcadores con los λ. Agregando todo obtenemos la probabilidad de cada equipo de llegar a cada ronda.</p></div>
+        <div class="about-card warn"><h3>⚠ Límites</h3><p>Lesiones de última hora, clima y arbitraje desequilibran cualquier modelo. La precisión típica ronda 55-65% en 1X2 y ~72% en Over/Under 2.5. Nunca llega al 100%.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal de partido -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-box">
+      <button id="modal-close" class="modal-close">✕</button>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <footer><p>Proyecto académico · Datos reales del Mundial 2026 · Modelo combinado ELO + Dixon-Coles + Monte Carlo</p></footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
