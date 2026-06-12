@@ -1,6 +1,9 @@
 __pycache__/
 *.pyc
 .claude/
-_*.py
 .DS_Store
 *.log
+
+# Archivos de prueba temporales (un solo guion bajo + minúscula).
+# OJO: no usar "_*.py" porque también ignoraría los __init__.py del proyecto.
+_[a-z]*.py
